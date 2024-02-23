@@ -1,0 +1,54 @@
+// Parâmetros das médias móveis
+input int fastEMA = 9; // Período da EMA rápida
+input int slowEMA = 21; // Período da EMA lenta
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+  {
+   return(INIT_SUCCEEDED);
+  }
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+  {
+  }
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+  {
+   // Verifica se há posições abertas
+   if (OrdersTotal() == 0)
+     {
+      // Calcula a média móvel rápida
+      double fastMA = iMA(NULL, 0, fastEMA, 0, MODE_EMA, PRICE_CLOSE, 0);
+      // Calcula a média móvel lenta
+      double slowMA = iMA(NULL, 0, slowEMA, 0, MODE_EMA, PRICE_CLOSE, 0);
+      
+      // Condição de entrada: crossover de médias móveis
+      if (fastMA > slowMA)
+        {
+         // Abre uma posição de compra
+         OrderSend(Symbol(), OP_BUY, 0.1, Ask, 3, 0, 0, "Buy Order", 0, 0, clrNONE);
+        }
+      else if (fastMA < slowMA)
+        {
+         // Abre uma posição de venda
+         OrderSend(Symbol(), OP_SELL, 0.1, Bid, 3, 0, 0, "Sell Order", 0, 0, clrNONE);
+        }
+     }
+   else
+     {
+      // Calcula o lucro flutuante da posição
+      double profit = OrderProfit();
+      // Fecha a posição se o lucro flutuante for maior que 100 pontos
+      if (profit > 100)
+        {
+         OrderClose(OrderTicket(), OrderLots(), Bid, 3, clrNONE);
+        }
+     }
+  }
+//+------------------------------------------------------------------+
